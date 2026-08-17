@@ -1,7 +1,7 @@
 {
   "name": "@yaoapp/dsh-sdk-jsonrpc-stream",
   "description": "JSON-RPC stream plugin for Yao DSH integration with resume and auto-exit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
