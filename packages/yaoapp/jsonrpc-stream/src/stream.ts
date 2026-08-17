@@ -192,11 +192,21 @@ export class JsonRpcStream {
         return this.initialize(params as unknown as InitializeParams)
       case 'session/prompt':
         return this.prompt(params as unknown as SessionPromptParams)
+      case 'session/cancel':
+        return this.handleCancel(params as { sessionId: string })
       case 'shutdown':
         return this.shutdown()
       default:
         throw new Error(`unknown method: ${method}`)
     }
+  }
+
+  private async handleCancel(params: { sessionId: string }): Promise<{ accepted: boolean }> {
+    const rec = this.sessions.get(params.sessionId)
+    if (!rec) return { accepted: false }
+    const agent = this.ctx.agents?.get(rec.handle.agent.id)
+    if (agent) agent.cancel({ kind: 'user' }, { keepInbox: true })
+    return { accepted: true }
   }
 
   private async getOrResumeOrCreateSession(sessionId: string): Promise<SessionRecord> {
