@@ -8,6 +8,7 @@
  * @module dsh-llm-deepseek/translate
  */
 
+import { randomUUID } from 'node:crypto'
 import { CallId, EMPTY_RESPONSE_CODE, LlmError } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { DONE } from './sse.ts'
@@ -153,10 +154,11 @@ export async function* translate(payloads: AsyncIterable<string>): AsyncGenerato
         let block = toolBlocks.get(call.index)
         if (!block) {
           block = open('tool-call')
+          block.callId = randomUUID()
           toolBlocks.set(call.index, block)
           yield { type: 'block-start', index: block.index, blockType: 'tool-call' }
         }
-        if (call.id != null) block.callId = call.id
+        if (typeof call.id === 'string' && call.id !== '') block.callId = call.id
         if (call.function?.name != null) block.name = call.function.name
         const fragment = call.function?.arguments ?? ''
         block.text += fragment

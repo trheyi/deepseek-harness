@@ -45,8 +45,11 @@ export function apply(ctx: Context, config: StreamConfig): void {
 
   let exitTask: Promise<void> | undefined
   const DISPOSE_TIMEOUT_MS = 5000
+  const HARD_EXIT_MS = 10000
   const disposeAndExit = (): Promise<void> => {
     exitTask ??= (async () => {
+      const hardTimer = setTimeout(() => { exit(1) }, HARD_EXIT_MS)
+      hardTimer.unref()
       await Promise.allSettled([Promise.resolve().then(() => transport.flush())])
       const disposeOrTimeout = Promise.race([
         rootFiber.dispose(),

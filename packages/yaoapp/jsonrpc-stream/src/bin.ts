@@ -59,9 +59,12 @@ if (configPath === undefined || !existsSync(configPath)) {
 const ctx = await boot(NAME, configPath, undefined, undefined, import.meta.url)
 
 let exiting = false
+const HARD_EXIT_MS = 10000
 async function disposeAndExit(code: number): Promise<void> {
   if (exiting) return
   exiting = true
+  const hardTimer = setTimeout(() => { process.exit(code || 1) }, HARD_EXIT_MS)
+  hardTimer.unref()
   try { await ctx.fiber.dispose() }
   finally { process.exit(code) }
 }

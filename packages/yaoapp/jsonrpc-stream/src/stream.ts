@@ -240,17 +240,22 @@ export class JsonRpcStream {
     const headers = await persistence.list()
     const found = headers.find(h => String(h.id) === sessionId)
     if (!found) return undefined
-    const handle = await this.ctx.agents.resume({
-      resumeSessionId: SessionId(sessionId),
-      agentOptions: {
-        provider: this.provider,
-        model: this.model,
-        ...this.maxTokens === undefined ? {} : { maxTokens: this.maxTokens },
-      },
-    })
-    const rec: SessionRecord = { handle }
-    this.sessions.set(sessionId, rec)
-    return rec
+    try {
+      const handle = await this.ctx.agents.resume({
+        resumeSessionId: SessionId(sessionId),
+        agentOptions: {
+          provider: this.provider,
+          model: this.model,
+          ...this.maxTokens === undefined ? {} : { maxTokens: this.maxTokens },
+        },
+      })
+      const rec: SessionRecord = { handle }
+      this.sessions.set(sessionId, rec)
+      return rec
+    } catch (err: unknown) {
+      process.stderr.write(`warn: session "${sessionId}" resume failed, creating new: ${err}\n`)
+      return undefined
+    }
   }
 
   private async createSession(sessionId: string): Promise<SessionRecord> {

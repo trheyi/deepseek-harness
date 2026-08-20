@@ -312,20 +312,23 @@ describe('mapUsage', () => {
 })
 
 describe('translate: defensive tool-call branches', () => {
-  it('handles deltas that never carry id or name (empty-string fallbacks)', async () => {
+  it('assigns a UUID fallback when deltas never carry id or name', async () => {
     const chunks = await collect(translate(feed(
       firstChunk,
-      // Hypothetical lenient wire: argument fragments with no id/name at all.
       { choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '{}' } }] } }] },
       { choices: [{ delta: {}, finish_reason: 'tool_calls' }] },
       DONE,
     )))
-    expect(chunks).toEqual([
-      { type: 'block-start', index: 0, blockType: 'tool-call' },
-      { type: 'tool-call-delta', index: 0, id: '', argumentsDelta: '{}' },
-      { type: 'block-end', index: 0, block: { type: 'tool-call', id: '', name: '', arguments: '{}' } },
-      { type: 'finish', reason: { kind: 'tool-calls' } },
-    ])
+    expect(chunks[0]).toEqual({ type: 'block-start', index: 0, blockType: 'tool-call' })
+    const delta = chunks[1] as { type: string; id: string }
+    expect(delta.type).toBe('tool-call-delta')
+    expect(delta.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    const end = chunks[2] as { type: string; block: { id: string; name: string; arguments: string } }
+    expect(end.type).toBe('block-end')
+    expect(end.block.id).toBe(delta.id)
+    expect(end.block.name).toBe('')
+    expect(end.block.arguments).toBe('{}')
+    expect(chunks[3]).toEqual({ type: 'finish', reason: { kind: 'tool-calls' } })
   })
 
   it('handles tool_call deltas with a function object but no arguments field', async () => {
