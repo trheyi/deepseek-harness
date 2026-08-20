@@ -4,11 +4,39 @@
  * NOT listen for `process.stdin.on('end')` — the plugin's `onIdle` callback
  * drives process exit after the agent finishes its turn.
  *
+ * When running as a SEA (Single Executable Application), two fallback mechanisms
+ * extend module resolution beyond the bundled VFS:
+ * - `NODE_PATH` (set by Go launcher) — CJS `require()` fallback for sharp native deps
+ * - `registerHooks()` below — ESM `import()` fallback for Cordis plugins from DSH_PLUGINS_DIR
+ *
  * @module @yaoapp/dsh-sdk-jsonrpc-stream/bin
  */
 
 import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { registerHooks, createRequire } from 'node:module'
+import { pathToFileURL } from 'node:url'
 import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
+
+const pluginsDir = process.env['DSH_PLUGINS_DIR']
+if (pluginsDir) {
+  const req = createRequire(join(pluginsDir, 'anchor.js'))
+  registerHooks({
+    resolve(specifier, context, nextResolve) {
+      try {
+        return nextResolve(specifier, context)
+      } catch (err) {
+        if (!specifier.startsWith('.') && !specifier.startsWith('/') && !specifier.startsWith('node:')) {
+          try {
+            const resolved = req.resolve(specifier)
+            return { url: pathToFileURL(resolved).href, shortCircuit: true }
+          } catch { /* plugin not found in external dir either */ }
+        }
+        throw err
+      }
+    },
+  })
+}
 
 const NAME = 'yaoapp-dsh-stream'
 
