@@ -8682,6 +8682,42 @@ importers:
         specifier: workspace:^
         version: link:../../storage/storage-domain
 
+  packages/yaoapp/jsonrpc-stream:
+    dependencies:
+      '@deepseek-ai/cordis':
+        specifier: '*'
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: '*'
+        version: link:../../core/agent
+      '@deepseek-ai/dsh-app-boot':
+        specifier: '*'
+        version: link:../../boot/app-boot
+      '@deepseek-ai/dsh-llm':
+        specifier: '*'
+        version: link:../../llm/llm
+      '@deepseek-ai/dsh-llm-deepseek':
+        specifier: '*'
+        version: link:../../llm/llm-deepseek
+      '@deepseek-ai/dsh-scope':
+        specifier: '*'
+        version: link:../../core/scope
+      '@deepseek-ai/dsh-sdk-protocol':
+        specifier: '*'
+        version: link:../../sdk/protocol
+      '@deepseek-ai/dsh-session':
+        specifier: '*'
+        version: link:../../core/session
+      '@deepseek-ai/dsh-session-persistence':
+        specifier: '*'
+        version: link:../../session/session-persistence
+      '@deepseek-ai/dsh-subagent':
+        specifier: '*'
+        version: link:../../subagent/subagent
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+
   python/sdk-runtime:
     dependencies:
       '@deepseek-ai/cordis':
