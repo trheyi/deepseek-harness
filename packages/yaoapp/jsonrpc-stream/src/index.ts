@@ -6,7 +6,7 @@
  * The plugin exits 0 on idle (after the prompted session completes) or on `shutdown`.
  * The app bin owns signal exits; this plugin does NOT exit on stdin EOF.
  *
- * @module @yaoapp/dsh-sdk-jsonrpc-stream
+ * @module @deepseek-ai/dsh-yaoapp-jsonrpc-stream
  */
 
 import type { Context } from '@deepseek-ai/cordis'

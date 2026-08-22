@@ -9,7 +9,7 @@
  * - `NODE_PATH` (set by Go launcher) — CJS `require()` fallback for sharp native deps
  * - `registerHooks()` below — ESM `import()` fallback for Cordis plugins from DSH_PLUGINS_DIR
  *
- * @module @yaoapp/dsh-sdk-jsonrpc-stream/bin
+ * @module @deepseek-ai/dsh-yaoapp-jsonrpc-stream/bin
  */
 
 import { existsSync } from 'node:fs'

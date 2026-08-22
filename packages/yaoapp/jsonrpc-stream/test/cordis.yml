@@ -1,9 +1,9 @@
-# Test config for @yaoapp/dsh-sdk-jsonrpc-stream.
+# Test config for @deepseek-ai/dsh-yaoapp-jsonrpc-stream.
 # Uses the yaoapp stream plugin instead of the official jsonrpc-server.
 # stdout is reserved for JSON-RPC; no console logger.
 
 - id: yaoapp-jsonrpc-stream
-  name: '@yaoapp/dsh-sdk-jsonrpc-stream'
+  name: '@deepseek-ai/dsh-yaoapp-jsonrpc-stream'
   config:
     maxTokensAsSuccess: true
 

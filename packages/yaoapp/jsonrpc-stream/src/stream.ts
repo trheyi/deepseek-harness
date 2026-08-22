@@ -5,7 +5,7 @@
  * - `onIdle` callback: fires when the prompted root session becomes idle
  * - `promptedSessionId` tracking: prevents subagent idle from triggering premature exit
  *
- * @module @yaoapp/dsh-sdk-jsonrpc-stream/stream
+ * @module @deepseek-ai/dsh-yaoapp-jsonrpc-stream/stream
  */
 
 import type { Context } from '@deepseek-ai/cordis'

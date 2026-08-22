@@ -18,6 +18,7 @@
     { "path": "../../session/session-persistence" },
     { "path": "../../sdk/protocol" },
     { "path": "../../subagent/subagent" },
-    { "path": "../../boot/app-boot" }
+    { "path": "../../boot/app-boot" },
+    { "path": "../../runtime-diagnostics/invariants" }
   ]
 }
