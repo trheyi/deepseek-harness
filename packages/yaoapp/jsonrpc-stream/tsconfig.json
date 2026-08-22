@@ -14,6 +14,7 @@
     { "path": "../../llm/llm-deepseek" },
     { "path": "../../core/agent" },
     { "path": "../../core/session" },
+    { "path": "../../attachment/attachment" },
     { "path": "../../session/session-persistence" },
     { "path": "../../sdk/protocol" },
     { "path": "../../subagent/subagent" },

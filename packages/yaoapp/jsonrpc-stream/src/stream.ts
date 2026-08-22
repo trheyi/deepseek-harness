@@ -28,6 +28,7 @@ import type {
   SubagentFinishedNotification,
   SubagentStartedNotification,
 } from '@deepseek-ai/dsh-sdk-protocol'
+import { admitContent, type WireContentPart } from './admit-content.ts'
 
 interface SessionRecord {
   handle: AgentHandle
@@ -142,7 +143,8 @@ export class JsonRpcStream {
       throw new Error(`session agent was disposed outside the server: ${params.sessionId}`)
     }
     this.promptedSessionId = params.sessionId
-    const message = createUserMessage({ content: params.contentBlocks, source: { kind: 'user' } })
+    const content = await admitContent(this.ctx, params.contentBlocks as WireContentPart[], this.provider, this.model)
+    const message = createUserMessage({ content, source: { kind: 'user' } })
     rec.handle.agent.followup(message)
     return { messageId: message.id }
   }

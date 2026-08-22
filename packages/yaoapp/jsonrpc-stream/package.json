@@ -24,6 +24,7 @@
   "peerDependencies": {
     "@deepseek-ai/schemastery": "*",
     "@deepseek-ai/dsh-agent": "*",
+    "@deepseek-ai/dsh-attachment": "*",
     "@deepseek-ai/dsh-llm": "*",
     "@deepseek-ai/dsh-llm-deepseek": "*",
     "@deepseek-ai/dsh-scope": "*",

@@ -8693,6 +8693,9 @@ importers:
       '@deepseek-ai/dsh-app-boot':
         specifier: '*'
         version: link:../../boot/app-boot
+      '@deepseek-ai/dsh-attachment':
+        specifier: '*'
+        version: link:../../attachment/attachment
       '@deepseek-ai/dsh-llm':
         specifier: '*'
         version: link:../../llm/llm
