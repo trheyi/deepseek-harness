@@ -39,6 +39,7 @@
     "@deepseek-ai/dsh-session": "*",
     "@deepseek-ai/dsh-session-persistence": "*",
     "@deepseek-ai/dsh-subagent": "*",
+    "@deepseek-ai/dsh-subprocess-local": "*",
     "@deepseek-ai/dsh-app-boot": "*",
     "@deepseek-ai/cordis": "*"
   },

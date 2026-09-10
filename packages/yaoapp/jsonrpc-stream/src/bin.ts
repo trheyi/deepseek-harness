@@ -9,6 +9,11 @@
  * - `NODE_PATH` (set by Go launcher) — CJS `require()` fallback for sharp native deps
  * - `registerHooks()` below — ESM `import()` fallback for Cordis plugins from DSH_PLUGINS_DIR
  *
+ * The subprocess-local plugin re-executes the SEA binary as a private runner
+ * (Windows Job Object / Linux systemd scope). The runner bootstrap below
+ * detects that mode via `DSH_SUBPROCESS_RUNNER` and enters the runner path
+ * before any normal boot logic runs.
+ *
  * @module @deepseek-ai/dsh-yaoapp-jsonrpc-stream/bin
  */
 
@@ -18,56 +23,63 @@ import { registerHooks, createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@deepseek-ai/dsh-app-boot'
 
-const pluginsDir = process.env['DSH_PLUGINS_DIR']
-if (pluginsDir) {
-  const req = createRequire(join(pluginsDir, 'anchor.js'))
-  registerHooks({
-    resolve(specifier, context, nextResolve) {
-      try {
-        return nextResolve(specifier, context)
-      } catch (err) {
-        if (!specifier.startsWith('.') && !specifier.startsWith('/') && !specifier.startsWith('node:')) {
-          try {
-            const resolved = req.resolve(specifier)
-            return { url: pathToFileURL(resolved).href, shortCircuit: true }
-          } catch { /* plugin not found in external dir either */ }
+const runnerSelection = process.env['DSH_SUBPROCESS_RUNNER']
+if (runnerSelection !== undefined) {
+  Reflect.deleteProperty(process.env, 'DSH_SUBPROCESS_RUNNER')
+  const { runSelectedSubprocessRunner } = await import('@deepseek-ai/dsh-subprocess-local/runner')
+  await runSelectedSubprocessRunner(runnerSelection)
+} else {
+  const pluginsDir = process.env['DSH_PLUGINS_DIR']
+  if (pluginsDir) {
+    const req = createRequire(join(pluginsDir, 'anchor.js'))
+    registerHooks({
+      resolve(specifier, context, nextResolve) {
+        try {
+          return nextResolve(specifier, context)
+        } catch (err) {
+          if (!specifier.startsWith('.') && !specifier.startsWith('/') && !specifier.startsWith('node:')) {
+            try {
+              const resolved = req.resolve(specifier)
+              return { url: pathToFileURL(resolved).href, shortCircuit: true }
+            } catch { /* plugin not found in external dir either */ }
+          }
+          throw err
         }
-        throw err
-      }
-    },
-  })
+      },
+    })
+  }
+
+  const NAME = 'yaoapp-dsh-stream'
+
+  installFailLoud(NAME)
+  loadEnv(NAME)
+
+  const fromEnv = process.env['DSH_CORDIS_CONFIG']
+  const fromArgv = process.argv[2]
+  const requested = fromEnv !== undefined && fromEnv !== '' ? fromEnv
+    : fromArgv !== undefined && fromArgv !== '' ? fromArgv : undefined
+  const configPath = requested === undefined ? undefined : resolveConfigPath(requested, undefined)
+
+  if (configPath === undefined || !existsSync(configPath)) {
+    process.stderr.write(
+      `usage: ${NAME} <path/to/cordis.yml> (or set DSH_CORDIS_CONFIG=<path>)\n`,
+    )
+    process.exit(1)
+  }
+
+  const ctx = await boot(NAME, configPath, undefined, undefined, import.meta.url)
+
+  let exiting = false
+  const HARD_EXIT_MS = 10000
+  async function disposeAndExit(code: number): Promise<void> {
+    if (exiting) return
+    exiting = true
+    const hardTimer = setTimeout(() => { process.exit(code || 1) }, HARD_EXIT_MS)
+    hardTimer.unref()
+    try { await ctx.fiber.dispose() }
+    finally { process.exit(code) }
+  }
+
+  process.on('SIGTERM', () => { void disposeAndExit(0) })
+  process.on('SIGINT', () => { void disposeAndExit(130) })
 }
-
-const NAME = 'yaoapp-dsh-stream'
-
-installFailLoud(NAME)
-loadEnv(NAME)
-
-const fromEnv = process.env['DSH_CORDIS_CONFIG']
-const fromArgv = process.argv[2]
-const requested = fromEnv !== undefined && fromEnv !== '' ? fromEnv
-  : fromArgv !== undefined && fromArgv !== '' ? fromArgv : undefined
-const configPath = requested === undefined ? undefined : resolveConfigPath(requested, undefined)
-
-if (configPath === undefined || !existsSync(configPath)) {
-  process.stderr.write(
-    `usage: ${NAME} <path/to/cordis.yml> (or set DSH_CORDIS_CONFIG=<path>)\n`,
-  )
-  process.exit(1)
-}
-
-const ctx = await boot(NAME, configPath, undefined, undefined, import.meta.url)
-
-let exiting = false
-const HARD_EXIT_MS = 10000
-async function disposeAndExit(code: number): Promise<void> {
-  if (exiting) return
-  exiting = true
-  const hardTimer = setTimeout(() => { process.exit(code || 1) }, HARD_EXIT_MS)
-  hardTimer.unref()
-  try { await ctx.fiber.dispose() }
-  finally { process.exit(code) }
-}
-
-process.on('SIGTERM', () => { void disposeAndExit(0) })
-process.on('SIGINT', () => { void disposeAndExit(130) })

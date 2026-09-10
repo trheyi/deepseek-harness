@@ -10863,6 +10863,9 @@ importers:
       '@deepseek-ai/dsh-subagent':
         specifier: '*'
         version: link:../../subagent/subagent
+      '@deepseek-ai/dsh-subprocess-local':
+        specifier: '*'
+        version: link:../../subprocess/subprocess-local
       '@deepseek-ai/schemastery':
         specifier: link:../../../vendor/schemastery
         version: link:../../../vendor/schemastery
