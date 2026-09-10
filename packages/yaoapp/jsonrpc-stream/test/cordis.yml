@@ -22,10 +22,16 @@
     cwd: !!js process.env.DSH_CWD ?? process.cwd()
     timeoutMs: 60000
 
+- id: shell-env
+  name: '@deepseek-ai/dsh-shell-env'
+
 - id: tool-bash
   name: '@deepseek-ai/dsh-tool-bash'
   config:
     enableRunInBackground: false
+
+- id: session-projection
+  name: '@deepseek-ai/dsh-session-projection'
 
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
