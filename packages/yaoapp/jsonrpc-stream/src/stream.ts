@@ -10,7 +10,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { resolve } from 'node:path'
-import type { Agent, AgentHandle } from '@deepseek-ai/dsh-agent'
+import type { Agent, AgentHandle, AssistantStreamFrame } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { carrierKeyOf, type Scoped } from '@deepseek-ai/dsh-scope'
 import { SessionId } from '@deepseek-ai/dsh-session'
@@ -65,6 +65,7 @@ export class JsonRpcStream {
   private shutdownTask: Promise<Record<string, never>> | undefined
   private shuttingDown = false
   private promptedSessionId: string | undefined
+  private readonly attemptContext = new Map<string, { turn: number; step: number }>()
 
   /** Fires when the prompted root session enters idle state. */
   onIdle: (() => void) | undefined
@@ -78,6 +79,26 @@ export class JsonRpcStream {
     this.disposers.push(ctx.on('session/event', (session, event) => {
       const payload: SessionEventNotification = { sessionId: String(session.id), event }
       this.transport.notify('session.event', payload)
+    }))
+    this.disposers.push(ctx.on('agent/assistant-stream', ({ agent, frame }: { agent: Agent; frame: AssistantStreamFrame }) => {
+      const sessionId = String(agent.session.id)
+      if (frame.type === 'start') {
+        this.attemptContext.set(String(frame.attemptId), { turn: frame.turn, step: frame.step })
+      } else if (frame.type === 'chunk') {
+        const context = this.attemptContext.get(String(frame.attemptId))
+        if (!context) return
+        this.transport.notify('session.event', {
+          sessionId,
+          event: {
+            type: 'assistant/chunk',
+            seq: 0,
+            time: frame.time,
+            data: { turn: context.turn, step: context.step, chunk: frame.chunk },
+          },
+        })
+      } else if (frame.type === 'end') {
+        this.attemptContext.delete(String(frame.attemptId))
+      }
     }))
     this.disposers.push(ctx.on('agent/status', ({ agent, status }) => {
       this.transport.notify('session.status', { sessionId: String(agent.session.id), status })
