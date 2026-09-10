@@ -240,7 +240,7 @@ export class JsonRpcStream {
     const persistence: SessionPersistence | undefined = this.ctx.get('sessionPersistence')
     if (persistence === undefined) return undefined
     const headers = await persistence.list()
-    const found = headers.find(h => String(h.id) === sessionId)
+    const found = headers.find(h => String(h.header.id) === sessionId)
     if (!found) return undefined
     try {
       const handle = await this.ctx.agents.resume({
