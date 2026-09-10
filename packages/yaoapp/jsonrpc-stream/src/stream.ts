@@ -151,7 +151,7 @@ export class JsonRpcStream {
       if (this.provider !== 'deepseek-official') throw new Error(`no adapter registered for provider "${this.provider}"`)
       this.llmFiber = await this.ctx.plugin(LlmDeepSeek, {})
     }
-    return { serverInfo: { name: 'yaoapp-dsh-stream', version: '0.1.0' } }
+    return { serverInfo: { name: 'yaoapp-dsh-stream', version: '0.1.5-rc.1' } }
   }
 
   /**
