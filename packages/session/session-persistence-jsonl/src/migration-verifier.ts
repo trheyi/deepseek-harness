@@ -73,6 +73,12 @@ const verificationScheduler = new VerificationScheduler()
 function workerSpawn(request: VerificationRequest): { readonly entry: string | URL; readonly options: WorkerOptions } {
   /* v8 ignore next 3 -- built-worker coverage owns the bundled path. */
   if (!import.meta.url.endsWith('.ts')) {
+    // FIXME(yaoapp-sea): entry must be fileURLToPath() string, not URL object.
+    // URL bypasses pkg's VFS Worker hook (typeof filename === 'string' guard in
+    // sea-bootstrap-core.js), causing v0→v3 migration to fail with
+    // "Cannot find module '/snapshot/.../worker.cjs'" in SEA builds.
+    // Fix: entry: fileURLToPath(new URL('./worker.cjs', import.meta.url))
+    // Deferred to next SEA release to avoid a full rebuild cycle.
     return {
       entry: new URL('./worker.cjs', import.meta.url),
       options: { workerData: request, execArgv: [] },
