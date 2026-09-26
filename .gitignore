@@ -45,5 +45,4 @@ apps/web/dist/
 worktrees/
 .agents/worktrees/
 .typert-*/
-packages/yaoapp/*-DISCUSSION-DRAFT.md
 native/system/test/bin/

@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    { "path": "../../vendor/cordis" },
+    { "path": "../../vendor/schemastery" },
+    { "path": "../../packages/llm/llm" },
+    { "path": "../../packages/llm/llm-deepseek" },
+    { "path": "../../packages/llm/llm-deepseek-api-key" },
+    { "path": "../../packages/credentials/credentials" },
+    { "path": "../../packages/core/agent" },
+    { "path": "../../packages/core/session" },
+    { "path": "../../packages/attachment/attachment" },
+    { "path": "../../packages/session/session-persistence" },
+    { "path": "../../packages/sdk/protocol" },
+    { "path": "../../packages/subagent/subagent" },
+    { "path": "../../packages/boot/app-boot" },
+    { "path": "../../packages/runtime-diagnostics/invariants" }
+  ]
+}
