@@ -12,6 +12,8 @@
     { "path": "../../../vendor/schemastery" },
     { "path": "../../llm/llm" },
     { "path": "../../llm/llm-deepseek" },
+    { "path": "../../llm/llm-deepseek-api-key" },
+    { "path": "../../credentials/credentials" },
     { "path": "../../core/agent" },
     { "path": "../../core/session" },
     { "path": "../../attachment/attachment" },

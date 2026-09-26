@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-yaoapp-jsonrpc-stream",
   "description": "JSON-RPC stream plugin for Yao DSH integration with resume and auto-exit",
-  "version": "0.1.5-rc.1",
+  "version": "0.1.7-rc.2",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -33,7 +33,7 @@
     "@deepseek-ai/dsh-attachment": "*",
     "@deepseek-ai/dsh-invariants": "workspace:^",
     "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-llm-deepseek": "*",
+    "@deepseek-ai/dsh-llm-deepseek-api-key": "*",
     "@deepseek-ai/dsh-scope": "*",
     "@deepseek-ai/dsh-sdk-protocol": "*",
     "@deepseek-ai/dsh-session": "*",

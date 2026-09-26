@@ -17,7 +17,7 @@ import { SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
 import type SubagentRuntime from '@deepseek-ai/dsh-subagent'
 import type { SubagentRunEndInfo } from '@deepseek-ai/dsh-subagent'
-import * as LlmDeepSeek from '@deepseek-ai/dsh-llm-deepseek'
+import * as LlmDeepSeekApiKey from '@deepseek-ai/dsh-llm-deepseek-api-key'
 import type {
   InitializeParams,
   InitializeResult,
@@ -128,7 +128,7 @@ export class JsonRpcStream {
         childSessionId: String(info.id),
         status: successStatus(info.stopReason, maxTokensAsSuccess),
         stopReason: info.stopReason,
-        ...(info.lastAssistantMessage === undefined ? {} : { lastAssistantMessage: info.lastAssistantMessage }),
+        ...(info.lastAssistantMessage !== undefined ? { lastAssistantMessage: [...info.lastAssistantMessage] } : {}),
       }
       transport.notify('subagent.finished', payload)
     }))
@@ -149,9 +149,9 @@ export class JsonRpcStream {
     this.maxTokens = params.maxTokens
     if (!this.hasAdapterFor(this.provider)) {
       if (this.provider !== 'deepseek-official') throw new Error(`no adapter registered for provider "${this.provider}"`)
-      this.llmFiber = await this.ctx.plugin(LlmDeepSeek, {})
+      this.llmFiber = await this.ctx.plugin(LlmDeepSeekApiKey, { apiKeyEnv: 'DEEPSEEK_API_KEY' })
     }
-    return { serverInfo: { name: 'yaoapp-dsh-stream', version: '0.1.5-rc.1' } }
+    return { serverInfo: { name: 'yaoapp-dsh-stream', version: '0.1.7-rc.2' } }
   }
 
   /**
