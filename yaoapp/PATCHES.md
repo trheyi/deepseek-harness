@@ -16,9 +16,9 @@
 ### PATCH-002: SEA VFS 路径下 migration-verifier Worker 创建失败
 
 - **文件**: `packages/session/session-persistence-jsonl/src/migration-verifier.ts` (+6 行 FIXME)
-- **上游版本**: 0.1.7-rc.2
-- **状态**: 待修复
+- **上游版本**: 0.2.1-rc.2
+- **状态**: 待修复（上游未合并，SEA 构建时由 tai 的 `patches/0.2.1-rc.2/001-fix-sea-worker-vfs-entry.patch` 修复）
 
 `migration-verifier.ts` 使用 `new Worker(new URL(..., import.meta.url))` 创建 worker，
 但在 SEA 环境下 `import.meta.url` 指向 VFS 路径（`/snapshot/...`），Node.js Worker
-无法从 VFS 加载脚本。当前用 FIXME 注释标记，SEA 构建时需要将 worker 脚本提取到临时文件。
+无法从 VFS 加载脚本。SEA 构建 patch 将 `new URL(...)` 替换为 `fileURLToPath(new URL(...))`。

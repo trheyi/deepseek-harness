@@ -20,7 +20,6 @@
     { "path": "../../packages/session/session-persistence" },
     { "path": "../../packages/sdk/protocol" },
     { "path": "../../packages/subagent/subagent" },
-    { "path": "../../packages/boot/app-boot" },
-    { "path": "../../packages/runtime-diagnostics/invariants" }
+    { "path": "../../packages/boot/app-boot" }
   ]
 }
