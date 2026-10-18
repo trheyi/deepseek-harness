@@ -1,9 +1,15 @@
 /**
- * JSON-RPC stream handler with session resume and idle-exit support.
+ * JSON-RPC stream handler with session resume, descendant-aware idle, and
+ * explicit completion signaling.
+ *
  * Based on {@link @deepseek-ai/dsh-sdk-jsonrpc-server/server}, extended with:
  * - `tryResume()`: resumes a persisted session via `agents.resume()` when available
- * - `onIdle` callback: fires when the prompted root session becomes idle
- * - `promptedSessionId` tracking: prevents subagent idle from triggering premature exit
+ * - `awaitFullCompletion()`: waits for the prompted root session **and** all
+ *   descendant subagents to settle before firing `onIdle`, mirroring the
+ *   headless runner and SDK `session/wait` pattern.
+ * - `session.waiting` notification: emitted while descendants are still active
+ * - `session.completed` notification: emitted once the root and all descendants
+ *   are quiescent, immediately before `onIdle` triggers process exit
  *
  * @module @deepseek-ai/dsh-yaoapp-jsonrpc-stream/stream
  */
@@ -50,8 +56,9 @@ export interface JsonRpcStreamOptions {
 
 /**
  * JSON-RPC stream over a booted harness context. Extends the official server
- * with session resume from persistence and an `onIdle` callback that fires
- * when the prompted root session (not subagents) enters idle state.
+ * with session resume from persistence, descendant-aware idle waiting, and
+ * explicit `session.completed` / `session.waiting` signaling so the Go
+ * consumer knows when all work (including subagents) has finished.
  */
 export class JsonRpcStream {
   private cwd = process.cwd()
@@ -66,8 +73,9 @@ export class JsonRpcStream {
   private shuttingDown = false
   private promptedSessionId: string | undefined
   private readonly attemptContext = new Map<string, { turn: number; step: number }>()
+  private completionStarted = false
 
-  /** Fires when the prompted root session enters idle state. */
+  /** Fires after the prompted root session and all descendants are quiescent. */
   onIdle: (() => void) | undefined
 
   constructor(
@@ -102,11 +110,14 @@ export class JsonRpcStream {
     }))
     this.disposers.push(ctx.on('agent/status', ({ agent, status }) => {
       this.transport.notify('session.status', { sessionId: String(agent.session.id), status })
-      if (status === 'idle'
-        && this.promptedSessionId !== undefined
+      const isPrompted = this.promptedSessionId !== undefined
         && String(agent.session.id) === this.promptedSessionId
-        && this.onIdle) {
-        this.onIdle()
+      if (status === 'idle'
+        && isPrompted
+        && this.onIdle
+        && !this.completionStarted) {
+        this.completionStarted = true
+        void this.awaitFullCompletion(agent)
       }
     }))
     this.disposers.push(ctx.on('session/created', (session) => {
@@ -298,5 +309,34 @@ export class JsonRpcStream {
 
   private hasAdapterFor(provider: string): boolean {
     return this.ctx.get('llm')?.listProviders().some(entry => entry.id === provider) ?? false
+  }
+
+  /**
+   * Wait for the prompted root agent and all descendant subagents to settle,
+   * mirroring the headless runner (`packages/bundle/headless/src/index.ts`)
+   * and SDK `session/wait` (`packages/sdk/server/src/server.ts`) pattern.
+   *
+   * Emits `session.waiting` while descendants are active and
+   * `session.completed` once quiescent, then fires `onIdle`.
+   */
+  private async awaitFullCompletion(agent: Agent): Promise<void> {
+    const subagents: SubagentRuntime | undefined = this.ctx.get('subagents')
+    while (true) {
+      await agent.whenIdle()
+      const idleSeq = agent.session.seq
+      const hadChildren = await subagents?.waitForChildren(agent)
+      if (!hadChildren
+        && agent.status === 'idle'
+        && agent.session.seq === idleSeq) {
+        this.transport.notify('session.completed', {
+          sessionId: this.promptedSessionId,
+        })
+        if (this.onIdle) this.onIdle()
+        return
+      }
+      this.transport.notify('session.waiting', {
+        sessionId: this.promptedSessionId,
+      })
+    }
   }
 }
